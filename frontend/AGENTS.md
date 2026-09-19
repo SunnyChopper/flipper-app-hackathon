@@ -11,13 +11,18 @@ npm run dev
 
 ## Routes
 
+- `/login` Supabase email/password sign in and sign up
 - `/` redirects to `/radar`
 - `/radar` searchable, filterable opportunity feed
 - `/opportunities/:id` financial analysis
-- `/saved` bookmarked deals (localStorage)
+- `/saved` bookmarked deals
 - `/*` tasteful 404
 
-Do not add login, settings, analytics, or other dead navigation.
+Radar, Saved, and opportunity detail require a session when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set. Local demo without those keys stays open.
+
+## Auth
+
+Use `@supabase/supabase-js` in the React app. Do not build a custom password table or FastAPI login UI. Forward the access token as `Authorization: Bearer` on FastAPI calls.
 
 ## Data
 

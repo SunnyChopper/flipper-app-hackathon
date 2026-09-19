@@ -1,3 +1,5 @@
+import { getAccessToken } from "@/lib/supabase";
+
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -27,11 +29,13 @@ export async function apiFetch<T>(
   init?: RequestInit & { params?: Record<string, string | number | undefined | null> },
 ): Promise<T> {
   const { params, ...requestInit } = init ?? {};
+  const token = await getAccessToken();
   const response = await fetch(buildUrl(path, params), {
     ...requestInit,
     headers: {
       Accept: "application/json",
       ...(requestInit.body ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...requestInit.headers,
     },
   });
