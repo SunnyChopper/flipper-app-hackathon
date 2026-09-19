@@ -1,5 +1,5 @@
 ---
-description: React frontend conventions for Deal Sniper
+description: React frontend conventions for DealSniper
 globs: frontend/**/*.{ts,tsx,css}
 alwaysApply: false
 ---
@@ -8,6 +8,7 @@ alwaysApply: false
 
 Follow `frontend/AGENTS.md` and the `frontend-deals-ui` skill.
 
-- Use `src/lib/api.ts` for FastAPI
-- Use `src/lib/supabase.ts` for Auth/Realtime only
-- Render `Deal.score` from the API; do not recompute profit in components
+- Routes: `/radar`, `/opportunities/:id`, `/saved`
+- Mock data + Zustand; persist saved IDs
+- Navy header, white cards, emerald profit accents
+- Lucide icons only

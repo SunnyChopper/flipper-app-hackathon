@@ -1,24 +1,19 @@
 ---
 name: frontend-deals-ui
-description: Build Deal Sniper React UI — search, filters, deal cards, profit/risk views, saved searches, and Supabase auth/realtime. Use when working in frontend/, React, Vite, TypeScript pages, or deal cards.
+description: Build the DealSniper React dashboard — radar feed, opportunity analysis, saved deals, Tailwind/shadcn styling, and Zustand mock-data flows. Use when working in frontend/, Radar, opportunities, or saved deals.
 ---
 
 # Frontend deals UI
 
 ## Do this
 
-1. Read `frontend/AGENTS.md` before changing pages.
-2. Fetch `Deal` objects from FastAPI via `src/lib/api.ts`. Never duplicate scoring math.
-3. Put screens in `src/pages/` and reusable pieces in `src/components/`.
-4. Use `src/lib/supabase.ts` for Auth and Realtime only.
+1. Read `frontend/AGENTS.md`.
+2. Keep the MVP routes: `/radar`, `/opportunities/:id`, `/saved`.
+3. Filter and sort mock data in the client. Do not add auth or extra nav.
+4. Use `lucide-react` for icons and the navy / emerald visual system in `src/styles/globals.css`.
 
 ## Screens
 
-- `/` search + filters + deal cards
-- `/deals/:id` profit / risk
-- `/saved` saved searches
-- `/login` Supabase Auth
-
-## Styling
-
-Keep the existing tokens in `src/index.css`: forest background, lime profit, orange risk, Newsreader headings, IBM Plex Mono data.
+- `/radar` find undervalued items
+- `/opportunities/:id` investment-style analysis
+- `/saved` bookmarked opportunities

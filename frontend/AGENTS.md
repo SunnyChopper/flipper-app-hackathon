@@ -1,6 +1,6 @@
-# Frontend — Deal Sniper UI
+# Frontend — DealSniper UI
 
-React + TypeScript app for search, filters, deal cards, profit/risk views, and saved searches.
+React + TypeScript dashboard for marketplace arbitrage discovery.
 
 ## Run
 
@@ -9,21 +9,20 @@ npm install
 npm run dev
 ```
 
-Deploy this folder to Vercel. `vercel.json` already rewrites to `index.html`.
+## Routes
 
-## Layout
+- `/` redirects to `/radar`
+- `/radar` searchable, filterable opportunity feed
+- `/opportunities/:id` financial analysis
+- `/saved` bookmarked deals (localStorage)
+- `/*` tasteful 404
 
-- `src/pages/SearchPage.tsx` — feed + filters
-- `src/pages/DealDetailPage.tsx` — profit / risk breakdown
-- `src/pages/SavedSearchesPage.tsx` — saved queries
-- `src/pages/AuthPage.tsx` — Supabase Auth
-- `src/components/` — presentational UI
-- `src/lib/api.ts` — FastAPI client
-- `src/lib/supabase.ts` — Auth + Realtime client
+Do not add login, settings, analytics, or other dead navigation.
 
-## Conventions
+## Data
 
-- Talk to FastAPI for deals, ingest, and saved searches.
-- Use Supabase only for Auth and Realtime (`deal_scores` inserts).
-- Do not score deals in the browser. Render `Deal.score` from the API.
-- Keep styling in `src/index.css`. Match the existing dark / serif / mono look.
+Use mock opportunities in `src/data/`. Filtering and scoring display happen on the client. Zustand persists saved IDs.
+
+## Visual system
+
+Navy header, white cards, emerald profit, amber uncertainty, Geist/Inter, compact SaaS density. Icons from `lucide-react` only.

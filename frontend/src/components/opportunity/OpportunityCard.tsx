@@ -1,0 +1,76 @@
+import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { formatDistance, formatRelativeTime } from "@/lib/formatting";
+import type { Opportunity } from "@/types/opportunity";
+import { DealScoreBadge } from "./DealScoreBadge";
+import { ListingImage } from "./ListingImage";
+import { MarketplaceBadge } from "./MarketplaceBadge";
+import { MetricRow } from "./MetricRow";
+import { OpportunityActions } from "./OpportunityActions";
+import { ProfitBadge } from "./ProfitBadge";
+
+export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
+  const distance = formatDistance(opportunity.distanceMiles);
+
+  return (
+    <Card className="p-4 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-card-hover md:p-5">
+      <div className="flex flex-col gap-4 md:flex-row">
+        <Link to={`/opportunities/${opportunity.id}`} className="shrink-0">
+          <ListingImage
+            src={opportunity.imageUrl}
+            alt={opportunity.title}
+            className="h-40 w-full rounded-[10px] md:h-[120px] md:w-[120px]"
+          />
+        </Link>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <Tooltip content="Deal Score considers estimated margin, ROI and pricing confidence.">
+                  <span>
+                    <DealScoreBadge score={opportunity.dealScore} />
+                  </span>
+                </Tooltip>
+                <Link to={`/opportunities/${opportunity.id}`} className="truncate text-[16px] font-semibold tracking-tight">
+                  {opportunity.title}
+                </Link>
+              </div>
+              {opportunity.subtitle ? <p className="mt-1 text-sm text-muted">{opportunity.subtitle}</p> : null}
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                <MarketplaceBadge source={opportunity.source} />
+                <span>•</span>
+                <span>{formatRelativeTime(opportunity.listedAt)}</span>
+                {distance ? (
+                  <>
+                    <span>•</span>
+                    <span>{distance}</span>
+                  </>
+                ) : null}
+              </div>
+            </div>
+            <ProfitBadge profit={opportunity.estimatedProfit} />
+          </div>
+
+          <div className="mt-4">
+            <MetricRow
+              asking={opportunity.askingPrice}
+              value={opportunity.estimatedWorkingValue}
+              repair={opportunity.estimatedRepairCost}
+            />
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-1.5">
+              <Badge>{opportunity.category}</Badge>
+              {opportunity.subcategory ? <Badge>{opportunity.subcategory}</Badge> : null}
+            </div>
+            <OpportunityActions id={opportunity.id} listingUrl={opportunity.listingUrl} />
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
