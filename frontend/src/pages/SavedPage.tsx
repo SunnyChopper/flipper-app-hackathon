@@ -4,13 +4,12 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SavedDealList } from "@/components/opportunity/SavedDealCard";
+import { OpportunityCardSkeleton } from "@/components/opportunity/Skeletons";
 import { useSavedDeals } from "@/hooks/useSavedDeals";
-import { useToastStore } from "@/store/toastStore";
 
 export function SavedPage() {
   const navigate = useNavigate();
-  const { items, count, remove } = useSavedDeals();
-  const showToast = useToastStore((state) => state.show);
+  const { items, count, loading, error, remove, refetch } = useSavedDeals();
 
   return (
     <PageContainer>
@@ -22,14 +21,22 @@ export function SavedPage() {
         <Badge>{count} item{count === 1 ? "" : "s"}</Badge>
       </div>
 
-      {count ? (
-        <SavedDealList
-          items={items}
-          onRemove={(id) => {
-            remove(id);
-            showToast("Removed from saved deals");
-          }}
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <OpportunityCardSkeleton key={index} />
+          ))}
+        </div>
+      ) : error ? (
+        <EmptyState
+          icon={<Heart className="h-8 w-8" />}
+          title="Could not load saved deals."
+          description="The FastAPI service may be offline. Start the backend on port 8000 and try again."
+          actionLabel="Retry"
+          onAction={() => void refetch()}
         />
+      ) : count ? (
+        <SavedDealList items={items} onRemove={(id) => void remove(id)} />
       ) : (
         <EmptyState
           icon={<Heart className="h-8 w-8" />}

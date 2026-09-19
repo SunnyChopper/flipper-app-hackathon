@@ -10,37 +10,38 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useOpportunities } from "@/hooks/useOpportunities";
 import { useOpportunityStore } from "@/store/opportunityStore";
-import type { Marketplace, SortOption } from "@/types/opportunity";
+import type { MarketplaceSource, OpportunitySort } from "@/types/opportunity";
 
 export function RadarPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [booting, setBooting] = useState(true);
   const [hydrated, setHydrated] = useState(false);
   const query = useOpportunityStore((state) => state.query);
   const setQuery = useOpportunityStore((state) => state.setQuery);
   const setFilters = useOpportunityStore((state) => state.setFilters);
   const reset = useOpportunityStore((state) => state.reset);
-  const { results } = useOpportunities();
+  const { items, total, loading, error, refetch } = useOpportunities();
 
   useEffect(() => {
     setFilters({
       query: searchParams.get("q") ?? "",
       category: searchParams.get("category") ?? "all",
-      marketplace: (searchParams.get("marketplace") as Marketplace | "all") ?? "all",
+      source: (searchParams.get("source") as MarketplaceSource | "all") ?? "all",
+      condition: searchParams.get("condition") ?? "all",
       minProfit: searchParams.get("minProfit") ? Number(searchParams.get("minProfit")) : null,
+      minRoi: searchParams.get("minRoi") ? Number(searchParams.get("minRoi")) : null,
       maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : null,
-      sort: (searchParams.get("sort") as SortOption) ?? "best",
+      sort: (searchParams.get("sort") as OpportunitySort) ?? "score_desc",
     });
     setHydrated(true);
-    const timer = window.setTimeout(() => setBooting(false), 420);
-    return () => window.clearTimeout(timer);
     // Hydrate once from the incoming URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const category = useOpportunityStore((state) => state.category);
-  const marketplace = useOpportunityStore((state) => state.marketplace);
+  const source = useOpportunityStore((state) => state.source);
+  const condition = useOpportunityStore((state) => state.condition);
   const minProfit = useOpportunityStore((state) => state.minProfit);
+  const minRoi = useOpportunityStore((state) => state.minRoi);
   const maxPrice = useOpportunityStore((state) => state.maxPrice);
   const sort = useOpportunityStore((state) => state.sort);
 
@@ -49,16 +50,18 @@ export function RadarPage() {
     const next = new URLSearchParams();
     if (query) next.set("q", query);
     if (category !== "all") next.set("category", category);
-    if (marketplace !== "all") next.set("marketplace", marketplace);
+    if (source !== "all") next.set("source", source);
+    if (condition !== "all") next.set("condition", condition);
     if (minProfit != null) next.set("minProfit", String(minProfit));
+    if (minRoi != null) next.set("minRoi", String(minRoi));
     if (maxPrice != null) next.set("maxPrice", String(maxPrice));
-    if (sort !== "best") next.set("sort", sort);
+    if (sort !== "score_desc") next.set("sort", sort);
     setSearchParams(next, { replace: true });
-  }, [hydrated, query, category, marketplace, minProfit, maxPrice, sort, setSearchParams]);
+  }, [hydrated, query, category, source, condition, minProfit, minRoi, maxPrice, sort, setSearchParams]);
 
   const resultLabel = query.trim()
-    ? `${results.length} result${results.length === 1 ? "" : "s"} for “${query.trim()}”`
-    : `${results.length} opportunit${results.length === 1 ? "y" : "ies"}`;
+    ? `${items.length} result${items.length === 1 ? "" : "s"} for “${query.trim()}”`
+    : `${total} opportunit${total === 1 ? "y" : "ies"}`;
 
   return (
     <PageContainer wide>
@@ -68,25 +71,33 @@ export function RadarPage() {
       </p>
 
       <div className="mt-6">
-        <SearchBar value={query} onChange={setQuery} onSubmit={() => undefined} />
+        <SearchBar value={query} onChange={setQuery} onSubmit={() => void refetch()} />
       </div>
       <div className="mt-4">
         <RadarFilters />
       </div>
 
-      <p className="mt-6 text-[13px] text-muted">{resultLabel}</p>
+      <p className="mt-6 text-[13px] text-muted">{loading ? "Searching…" : resultLabel}</p>
 
-      {booting ? (
+      {loading ? (
         <div className="mt-4 space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
             <OpportunityCardSkeleton key={index} />
           ))}
         </div>
-      ) : results.length ? (
+      ) : error ? (
+        <EmptyState
+          icon={<Search className="h-8 w-8" />}
+          title="Could not load opportunities."
+          description="The FastAPI service may be offline. Start the backend on port 8000 and try again."
+          actionLabel="Retry"
+          onAction={() => void refetch()}
+        />
+      ) : items.length ? (
         <div className="mt-4 space-y-3">
-          {results.map((item, index) => (
+          {items.map((item, index) => (
             <motion.div
-              key={item.id}
+              key={item.listingId}
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.18, delay: index * 0.035 }}

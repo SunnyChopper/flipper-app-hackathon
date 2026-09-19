@@ -1,27 +1,31 @@
 import { create } from "zustand";
-import type { Marketplace, SortOption } from "../types/opportunity";
+import type { MarketplaceSource, OpportunitySort } from "@/types/opportunity";
 
-export type OpportunityFilters = {
+export type OpportunityFilterState = {
   query: string;
+  source: MarketplaceSource | "all";
   category: string;
-  marketplace: Marketplace | "all";
+  condition: string;
   minProfit: number | null;
+  minRoi: number | null;
   maxPrice: number | null;
-  sort: SortOption;
+  sort: OpportunitySort;
 };
 
-const defaults: OpportunityFilters = {
+const defaults: OpportunityFilterState = {
   query: "",
+  source: "all",
   category: "all",
-  marketplace: "all",
+  condition: "all",
   minProfit: null,
+  minRoi: null,
   maxPrice: null,
-  sort: "best",
+  sort: "score_desc",
 };
 
-type OpportunityState = OpportunityFilters & {
+type OpportunityState = OpportunityFilterState & {
   setQuery: (query: string) => void;
-  setFilters: (patch: Partial<OpportunityFilters>) => void;
+  setFilters: (patch: Partial<OpportunityFilterState>) => void;
   reset: () => void;
 };
 

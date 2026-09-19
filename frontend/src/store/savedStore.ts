@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 
 type SavedState = {
   savedIds: string[];
+  replace: (ids: string[]) => void;
   save: (id: string) => void;
   remove: (id: string) => void;
   toggle: (id: string) => void;
@@ -13,6 +14,7 @@ export const useSavedStore = create<SavedState>()(
   persist(
     (set, get) => ({
       savedIds: [],
+      replace: (ids) => set({ savedIds: Array.from(new Set(ids)) }),
       save: (id) => set({ savedIds: Array.from(new Set([...get().savedIds, id])) }),
       remove: (id) => set({ savedIds: get().savedIds.filter((saved) => saved !== id) }),
       toggle: (id) => {

@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { ExternalLink, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
+import { useDealMutations } from "@/hooks/useSavedDeals";
 import { useSavedStore } from "@/store/savedStore";
-import { useToastStore } from "@/store/toastStore";
 
 export function OpportunityActions({
   id,
@@ -15,13 +15,7 @@ export function OpportunityActions({
   compact?: boolean;
 }) {
   const saved = useSavedStore((state) => state.savedIds.includes(id));
-  const toggle = useSavedStore((state) => state.toggle);
-  const showToast = useToastStore((state) => state.show);
-
-  function onSave() {
-    toggle(id);
-    showToast(saved ? "Removed from saved deals" : "Deal saved");
-  }
+  const { toggle } = useDealMutations();
 
   return (
     <div className={`flex items-center gap-2 ${compact ? "" : "flex-wrap"}`}>
@@ -39,7 +33,7 @@ export function OpportunityActions({
           type="button"
           variant="icon"
           aria-label={saved ? "Remove saved opportunity" : "Save opportunity"}
-          onClick={onSave}
+          onClick={() => void toggle(id)}
         >
           <Heart className={`h-4 w-4 ${saved ? "fill-danger text-danger" : ""}`} />
         </Button>

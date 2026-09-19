@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { API_BASE_URL, apiFetch } from "@/api/apiClient";
 
 export type ApiHealth = {
   status: string;
@@ -10,9 +10,7 @@ export type ApiHealth = {
 };
 
 export async function fetchHealth(): Promise<ApiHealth> {
-  const response = await fetch(`${API_URL}/health`);
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
-  return response.json() as Promise<ApiHealth>;
+  return apiFetch<ApiHealth>("/health");
 }
+
+export { API_BASE_URL };
