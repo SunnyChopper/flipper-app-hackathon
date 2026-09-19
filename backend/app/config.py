@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ebay_cert_id: str = ""
     apify_token: str = ""
     openai_api_key: str = ""
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://localhost:5174"
 
     @property
     def cors_origin_list(self) -> list[str]:
