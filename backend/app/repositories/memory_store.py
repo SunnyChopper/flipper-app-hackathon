@@ -41,14 +41,24 @@ class MemoryStore:
         self.user_deals: dict[str, UserDeal] = {}
         self.searches: dict[str, SavedSearch] = {}
 
-    def upsert_listing(self, listing: Listing) -> Listing:
-        for existing in list(self.listings.values()):
+    def find_listing_duplicate(self, listing: Listing) -> Listing | None:
+        for existing in self.listings.values():
             if existing.source == listing.source and existing.external_id == listing.external_id:
-                listing.id = existing.id
-                self.listings[existing.id] = listing
-                return listing
+                return existing
+            if existing.url == listing.url:
+                return existing
+        return None
+
+    def insert_listing_if_new(self, listing: Listing) -> tuple[Listing, bool]:
+        existing = self.find_listing_duplicate(listing)
+        if existing:
+            return existing, False
         self.listings[listing.id] = listing
-        return listing
+        return listing, True
+
+    def upsert_listing(self, listing: Listing) -> Listing:
+        stored, _inserted = self.insert_listing_if_new(listing)
+        return stored
 
     def user_deal_for(self, user_id: str, listing_id: str) -> UserDeal | None:
         for deal in self.user_deals.values():

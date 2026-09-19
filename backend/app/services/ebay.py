@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from app.config import settings
 from app.models.listing import Listing
@@ -51,31 +52,32 @@ class EbayClient:
         return listings[:limit]
 
     def _mock_listings(self, query: str) -> list[Listing]:
-        label = query or "Dyson V11 Outsize, battery weak"
+        slug = _query_slug(query)
+        label = query or "Dyson V11 for parts"
         return [
             Listing(
-                id="ebay-mock-1",
+                id=f"ebay-mock-{slug}-1",
                 source="ebay",
-                external_id="v1|mock|1",
-                title=f"{label} — local auction find" if query else label,
-                description="Powers on. Battery holds about 8 minutes. Includes wand and floor head.",
+                external_id=f"ebay-mock-{slug}-1",
+                title=f"{label} — cracked housing, needs repair",
+                description="Does not work. Housing is cracked. Sold as-is for parts or repair.",
                 price=89,
-                url="https://www.ebay.com/itm/mock-dyson",
+                url=f"https://www.ebay.com/itm/mock-{slug}-1",
                 image_url="https://images.unsplash.com/photo-1558317374-067fb5f30001?w=800",
                 location="Austin, TX",
-                condition_label="Used",
+                condition_label="For parts or not working",
                 seller_name="mock-seller",
                 shipping_cost=12.0,
                 raw={"mock": True, "actor": settings.apify_ebay_actor, "query": query},
             ),
             Listing(
-                id="ebay-mock-2",
+                id=f"ebay-mock-{slug}-2",
                 source="ebay",
-                external_id="v1|mock|2",
+                external_id=f"ebay-mock-{slug}-2",
                 title=f"{query or 'iPhone 13'} cracked back glass, Face ID works",
                 description="Unlocked. Screen is fine. Back glass spidered. Battery 87%.",
                 price=140,
-                url="https://www.ebay.com/itm/mock-iphone",
+                url=f"https://www.ebay.com/itm/mock-{slug}-2",
                 image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800",
                 location="Dallas, TX",
                 condition_label="For parts or not working",
@@ -84,6 +86,10 @@ class EbayClient:
                 raw={"mock": True, "actor": settings.apify_ebay_actor, "query": query},
             ),
         ]
+
+
+def _query_slug(query: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", (query or "item").lower()).strip("-") or "item"
 
 
 ebay_client = EbayClient()
