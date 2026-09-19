@@ -1,50 +1,80 @@
-export type Marketplace = "facebook" | "ebay";
+import type { CatalogProductDetail, CatalogProductSummary, DefectiveComponent, MarketCompSummary, RepairSkillSummary } from "./catalog";
+import type { UserDealStatus, UserDealSummary } from "./deal";
+import type { ListingDetail } from "./listing";
 
-export type RiskSeverity = "low" | "medium" | "high";
+export type MarketplaceSource = "ebay" | "facebook_marketplace";
 
-export interface RiskItem {
-  id: string;
-  label: string;
-  severity: RiskSeverity;
+export type { UserDealStatus };
+
+export type OpportunitySort = "score_desc" | "profit_desc" | "roi_desc" | "price_asc" | "newest";
+
+export interface RadarFilters {
+  query?: string;
+  source?: MarketplaceSource;
+  category?: string;
+  minProfit?: number;
+  minRoi?: number;
+  maxPrice?: number;
+  condition?: string;
+  requiredSkill?: string;
+  persona?: string;
+  sort?: OpportunitySort;
+  page?: number;
+  pageSize?: number;
 }
 
-export interface MarketComp {
-  id: string;
-  title: string;
-  price: number;
-  marketplace: string;
-  imageUrl?: string;
+export interface DealScore {
+  total: number;
+  restorerScore: number;
+  harvesterScore: number;
+  valuationConfidence: number;
 }
 
-export interface Opportunity {
-  id: string;
-  title: string;
-  subtitle?: string;
-  source: Marketplace;
-  imageUrl: string;
-  gallery?: string[];
-  askingPrice: number;
-  estimatedWorkingValue: number;
-  estimatedRepairCost: number;
-  estimatedSellingFees: number;
-  estimatedProfit: number;
+export interface OpportunityFinancials {
+  purchasePrice: number;
+  shippingCost: number;
+  totalReplacementCost: number;
+  totalAcquisitionAndRepairCost: number;
+  estimatedWorkingMarketValue: number;
+  projectedRestorerNet: number;
+  projectedHarvestYield: number;
   roiPercent: number;
-  dealScore: number;
-  category: string;
-  subcategory?: string;
-  location?: string;
-  distanceMiles?: number;
-  listedAt: string;
-  detectedConditions: string[];
-  unknownRisks: RiskItem[];
-  marketComps: MarketComp[];
-  listingUrl: string;
 }
 
-export type SortOption =
-  | "best"
-  | "profit"
-  | "roi"
-  | "price"
-  | "score"
-  | "newest";
+export interface OpportunitySummary {
+  listingId: string;
+  source: MarketplaceSource;
+  title: string;
+  description?: string;
+  url: string;
+  price: number;
+  shippingCost: number;
+  imageUrl?: string;
+  condition: string;
+  listedAt?: string;
+  product?: CatalogProductSummary;
+  requiredRepairSkills: string[];
+  projectedRestorerNet: number;
+  projectedHarvestYield: number;
+  estimatedRepairCost: number;
+  dealScore: number;
+  userDealStatus: UserDealStatus | null;
+}
+
+export interface OpportunityListResponse {
+  items: OpportunitySummary[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface OpportunityDetail {
+  listing: ListingDetail;
+  product: CatalogProductDetail | null;
+  defects: DefectiveComponent[];
+  requiredSkills: RepairSkillSummary[];
+  marketComps: MarketCompSummary[];
+  financials: OpportunityFinancials;
+  dealScore: DealScore;
+  userDeal: UserDealSummary | null;
+}

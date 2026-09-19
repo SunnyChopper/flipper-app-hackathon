@@ -1,0 +1,30 @@
+import type { OpportunitySummary } from "@/types/opportunity";
+
+export const iphoneSummary: OpportunitySummary = {
+  listingId: "61111111-1111-4111-8111-111111111111",
+  source: "facebook_marketplace",
+  title: "iPhone 13 128GB cracked screen works fine",
+  description: "Screen damaged but everything else works.",
+  url: "https://www.facebook.com/marketplace/item/mock-iphone-cracked",
+  price: 220,
+  shippingCost: 0,
+  imageUrl: "https://example.com/iphone.jpg",
+  condition: "damaged",
+  listedAt: "2026-09-19T12:00:00Z",
+  product: {
+    id: "11111111-1111-4111-8111-111111111111",
+    brand: "Apple",
+    model: "iPhone 13",
+    variant: "128GB Unlocked",
+    category: "smartphones",
+    displayName: "Apple iPhone 13 128GB Unlocked",
+    estimatedWorkingMarketValue: 425,
+    valuationConfidenceScore: 0.92,
+  },
+  requiredRepairSkills: ["screen_swap"],
+  projectedRestorerNet: 115,
+  projectedHarvestYield: -192,
+  estimatedRepairCost: 90,
+  dealScore: 91,
+  userDealStatus: null,
+};

@@ -39,7 +39,7 @@ export function SearchBar({
           ref={inputRef}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="iPhone 15 Pro"
+          placeholder="iPhone 13"
           className="h-12 w-full rounded-input border border-border bg-white pl-10 pr-3 text-sm outline-none transition hover:border-border-strong focus:border-primary"
         />
       </label>

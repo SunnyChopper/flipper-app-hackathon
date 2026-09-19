@@ -1,4 +1,5 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { RadarPage } from "@/pages/RadarPage";
@@ -8,6 +9,10 @@ import { NotFoundPage } from "@/pages/NotFoundPage";
 
 function AppShell() {
   const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />

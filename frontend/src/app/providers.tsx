@@ -1,9 +1,11 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import type { ReactNode } from "react";
+import { useHydrateSavedDeals } from "@/hooks/useSavedDeals";
 import { useToastStore } from "@/store/toastStore";
 
 export function Providers({ children }: { children: ReactNode }) {
   const message = useToastStore((state) => state.message);
+  useHydrateSavedDeals();
 
   return (
     <TooltipPrimitive.Provider delayDuration={150}>

@@ -1,54 +1,60 @@
-import { useMemo } from "react";
-import { mockOpportunities } from "../data/mockOpportunities";
-import { useOpportunityStore } from "../store/opportunityStore";
-import type { Opportunity, SortOption } from "../types/opportunity";
-
-function sortOpportunities(items: Opportunity[], sort: SortOption): Opportunity[] {
-  const next = [...items];
-  switch (sort) {
-    case "profit":
-      return next.sort((a, b) => b.estimatedProfit - a.estimatedProfit);
-    case "roi":
-      return next.sort((a, b) => b.roiPercent - a.roiPercent);
-    case "price":
-      return next.sort((a, b) => a.askingPrice - b.askingPrice);
-    case "score":
-      return next.sort((a, b) => b.dealScore - a.dealScore);
-    case "newest":
-      return next.sort((a, b) => +new Date(b.listedAt) - +new Date(a.listedAt));
-    default:
-      return next.sort((a, b) => b.dealScore - a.dealScore);
-  }
-}
+import { useCallback, useEffect, useState } from "react";
+import { getOpportunities } from "@/api/opportunities";
+import { useOpportunityStore } from "@/store/opportunityStore";
+import type { OpportunityListResponse, RadarFilters } from "@/types/opportunity";
 
 export function useOpportunities() {
   const query = useOpportunityStore((state) => state.query);
+  const source = useOpportunityStore((state) => state.source);
   const category = useOpportunityStore((state) => state.category);
-  const marketplace = useOpportunityStore((state) => state.marketplace);
+  const condition = useOpportunityStore((state) => state.condition);
   const minProfit = useOpportunityStore((state) => state.minProfit);
+  const minRoi = useOpportunityStore((state) => state.minRoi);
   const maxPrice = useOpportunityStore((state) => state.maxPrice);
   const sort = useOpportunityStore((state) => state.sort);
 
-  const results = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    const filtered = mockOpportunities.filter((item) => {
-      const matchesQuery =
-        !needle ||
-        item.title.toLowerCase().includes(needle) ||
-        item.category.toLowerCase().includes(needle) ||
-        (item.subcategory ?? "").toLowerCase().includes(needle);
-      const matchesCategory = category === "all" || item.category === category || item.subcategory === category;
-      const matchesMarket = marketplace === "all" || item.source === marketplace;
-      const matchesProfit = minProfit == null || item.estimatedProfit >= minProfit;
-      const matchesPrice = maxPrice == null || item.askingPrice <= maxPrice;
-      return matchesQuery && matchesCategory && matchesMarket && matchesProfit && matchesPrice;
-    });
-    return sortOpportunities(filtered, sort);
-  }, [query, category, marketplace, minProfit, maxPrice, sort]);
+  const [data, setData] = useState<OpportunityListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  return { results, total: mockOpportunities.length };
-}
+  const filters: RadarFilters = {
+    query: query.trim() || undefined,
+    source: source === "all" ? undefined : source,
+    category: category === "all" ? undefined : category,
+    condition: condition === "all" ? undefined : condition,
+    minProfit: minProfit ?? undefined,
+    minRoi: minRoi ?? undefined,
+    maxPrice: maxPrice ?? undefined,
+    sort,
+  };
 
-export function getOpportunity(id: string): Opportunity | undefined {
-  return mockOpportunities.find((item) => item.id === id);
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await getOpportunities(filters);
+      setData(result);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load opportunities");
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, source, category, condition, minProfit, minRoi, maxPrice, sort]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void refetch();
+    }, query ? 200 : 0);
+    return () => window.clearTimeout(timer);
+  }, [refetch, query]);
+
+  return {
+    data,
+    items: data?.items ?? [],
+    total: data?.total ?? 0,
+    loading,
+    error,
+    refetch,
+  };
 }
