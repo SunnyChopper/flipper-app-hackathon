@@ -98,7 +98,7 @@ class FacebookMarketplaceClient:
         self,
         query: str,
         location: str = "united-states",
-        limit: int = 8,
+        limit: int = 20,
     ) -> list[Listing]:
         if not self.client.enabled:
             return self._mock_listings(query, location)

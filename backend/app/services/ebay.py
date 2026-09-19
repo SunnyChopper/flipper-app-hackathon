@@ -18,7 +18,7 @@ class EbayClient:
     def __init__(self) -> None:
         self.client = apify_client
 
-    async def search(self, query: str, limit: int = 8) -> list[Listing]:
+    async def search(self, query: str, limit: int = 20) -> list[Listing]:
         if not self.client.enabled:
             return self._mock_listings(query)
 

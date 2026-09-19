@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     apify_facebook_actor: str = "apify~facebook-marketplace-scraper"
     apify_ebay_actor: str = "datascrapers~ebay-scraper"
     apify_run_timeout_seconds: int = 180
-    apify_max_items: int = 5
-    apify_ingest_sources: str = "ebay"
+    apify_max_items: int = 20
+    apify_ingest_sources: str = "ebay,facebook"
     crawl_enabled: bool = True
     crawl_interval_seconds: int = 60
     crawl_categories: str = "phones,tvs,electronics,other"

@@ -11,6 +11,7 @@ from app.models.sources import (
     EbaySeller,
     FacebookMarketplaceItem,
     MoneyAmount,
+    TextBlob,
 )
 
 ITM_ID = re.compile(r"/itm/(?:[^/]*?/)?(\d{6,})")
@@ -55,21 +56,17 @@ def listing_from_facebook(item: FacebookMarketplaceItem) -> Listing | None:
     external_id = str(item.id) if item.id is not None else None
     title = item.marketplace_listing_title or item.title or item.custom_title
     price, currency = parse_money(item.listing_price if item.listing_price is not None else item.price)
-    url = item.listingUrl or (f"https://www.facebook.com/marketplace/item/{external_id}" if external_id else None)
+    url = item.listingUrl or item.itemUrl or item.facebookUrl
+    if not url and external_id:
+        url = f"https://www.facebook.com/marketplace/item/{external_id}"
     if not external_id or not title or price is None or not url:
         return None
     if item.is_hidden:
         return None
 
     location = _facebook_location(item)
-    image_url = None
-    if item.primary_listing_photo:
-        if item.primary_listing_photo.image and item.primary_listing_photo.image.uri:
-            image_url = item.primary_listing_photo.image.uri
-        else:
-            image_url = item.primary_listing_photo.uri
-
-    description = (item.description or item.redacted_description or "").strip()
+    image_url = _facebook_image(item)
+    description = _as_text(item.description) or _as_text(item.redacted_description)
     seller = item.marketplace_listing_seller.name if item.marketplace_listing_seller else None
 
     return Listing(
@@ -83,6 +80,7 @@ def listing_from_facebook(item: FacebookMarketplaceItem) -> Listing | None:
         url=url,
         image_url=image_url,
         location=location,
+        condition_label=item.condition,
         seller_name=seller,
         is_sold=item.is_sold or item.is_pending,
         raw=compact_raw(
@@ -188,14 +186,43 @@ def _ebay_location(item: EbayApifyItem) -> str | None:
 
 def _facebook_location(item: FacebookMarketplaceItem) -> str | None:
     loc = item.location
-    if not loc:
-        return None
-    if loc.reverse_geocode:
-        geo = loc.reverse_geocode
-        if geo.city_page and geo.city_page.display_name:
-            return geo.city_page.display_name
-        parts = [part for part in (geo.city, geo.state) if part]
+    if loc:
+        if loc.reverse_geocode:
+            geo = loc.reverse_geocode
+            if geo.city_page and geo.city_page.display_name:
+                return geo.city_page.display_name
+            parts = [part for part in (geo.city, geo.state) if part]
+            if parts:
+                return ", ".join(parts)
+        parts = [part for part in (loc.city, loc.state) if part]
         if parts:
             return ", ".join(parts)
-    parts = [part for part in (loc.city, loc.state) if part]
-    return ", ".join(parts) or None
+    text = _as_text(item.locationText)
+    return text or None
+
+
+def _facebook_image(item: FacebookMarketplaceItem) -> str | None:
+    if item.primary_listing_photo:
+        image_url = _photo_url(item.primary_listing_photo)
+        if image_url:
+            return image_url
+    for photo in item.listingPhotos:
+        image_url = _photo_url(photo)
+        if image_url:
+            return image_url
+    return None
+
+
+def _photo_url(photo: object) -> str | None:
+    image = getattr(photo, "image", None)
+    if image and getattr(image, "uri", None):
+        return image.uri
+    return getattr(photo, "uri", None) or getattr(photo, "photo_image_url", None)
+
+
+def _as_text(value: str | TextBlob | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    return (value.text or "").strip()

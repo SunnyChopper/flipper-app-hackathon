@@ -7,6 +7,7 @@ from app.models.listing import Listing
 from app.repositories.memory_store import memory_store
 from app.services.crawler import CATEGORY_QUERIES, CrawlScheduler, crawl_scheduler
 from app.services.ebay import ebay_client
+from app.services.apify import facebook_marketplace
 from app.services.ingest import ingest_pipeline
 from fastapi.testclient import TestClient
 
@@ -44,6 +45,33 @@ def test_persist_skips_duplicate_source_and_url():
     assert not second.inserted
     assert len(second.skipped) == len(first.inserted)
     assert len(memory_store.listings) == count_after_first
+
+
+def test_persist_collects_facebook_when_enabled(monkeypatch):
+    monkeypatch.setattr(settings, "apify_ingest_sources", "ebay,facebook")
+
+    async def fake_ebay(query: str, limit: int = 20) -> list[Listing]:
+        return []
+
+    async def fake_facebook(query: str, location: str = "united-states", limit: int = 20) -> list[Listing]:
+        return [
+            Listing(
+                id="fb-1",
+                source="facebook",
+                external_id="fb-cracked-iphone",
+                title="iPhone 13 cracked screen",
+                description="Does not work. Sold for parts.",
+                price=90,
+                url="https://www.facebook.com/marketplace/item/fb-cracked-iphone",
+                condition_label="For parts",
+            )
+        ]
+
+    monkeypatch.setattr(ebay_client, "search", fake_ebay)
+    monkeypatch.setattr(facebook_marketplace, "search", fake_facebook)
+    result = asyncio.run(ingest_pipeline.persist(IngestRequest(query="iphone")))
+    assert [row.external_id for row in result.inserted] == ["fb-cracked-iphone"]
+    assert result.inserted[0].source == "facebook_marketplace"
 
 
 def test_persist_rejects_working_listings(monkeypatch):
