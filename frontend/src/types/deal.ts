@@ -1,56 +1,24 @@
-export type Marketplace = "ebay" | "facebook";
+export type UserDealStatus = "saved" | "acquired" | "dismissed";
 
-export type Listing = {
+export interface SaveDealRequest {
+  status: UserDealStatus;
+  notes?: string | null;
+}
+
+export interface UserDealSummary {
   id: string;
-  source: Marketplace;
-  external_id: string;
-  title: string;
-  description: string;
-  price: number;
-  currency: string;
-  url: string;
-  image_url: string | null;
-  location: string | null;
-};
+  listingId?: string;
+  status: UserDealStatus;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
 
-export type NormalizedProduct = {
-  listing_id: string;
-  brand: string | null;
-  model: string | null;
-  category: string;
-  condition: string;
-  normalized_title: string;
-  attributes: Record<string, unknown>;
-};
-
-export type ScoreBreakdown = {
-  estimated_resale: number;
-  repair_estimate: number;
-  fees_estimate: number;
-  net_profit: number;
-  profit_margin: number;
-  risk_score: number;
-  overall_score: number;
-  rationale: string;
-};
-
-export type Deal = {
-  listing: Listing;
-  product: NormalizedProduct;
-  score: ScoreBreakdown;
-};
-
-export type DealFilters = {
-  q?: string;
-  source?: Marketplace | "";
-  min_profit?: number;
-  max_risk?: number;
-};
-
-export type SavedSearch = {
+export interface UserDealResponse {
   id: string;
-  name: string;
-  query: string;
-  filters: Record<string, unknown>;
-  notify: boolean;
-};
+  listingId: string;
+  status: UserDealStatus;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -12,7 +12,7 @@ Hackathon monorepo for finding underpriced marketplace listings, scoring flip po
 
 ```
 deal-sniper/
-├── frontend/     React search, filters, deal cards, profit/risk, saved searches
+├── frontend/     DealSniper dashboard: /radar, /opportunities/:id, /saved
 ├── backend/      FastAPI orchestration, scoring, marketplace adapters
 └── supabase/     schema, RLS, seed data
 ```
@@ -41,7 +41,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173](http://localhost:5173). The UI is frontend-first and runs on mock opportunities — no backend required for the Radar, analysis, or Saved flows.
 
 ### Supabase
 

@@ -1,0 +1,89 @@
+import { AnimatePresence, motion } from "framer-motion";
+import { ExternalLink, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import type { OpportunitySummary } from "@/types/opportunity";
+import { ListingImage } from "./ListingImage";
+import { MarketplaceBadge } from "./MarketplaceBadge";
+import { MetricRow } from "./MetricRow";
+import { ProfitBadge } from "./ProfitBadge";
+
+export function SavedDealCard({
+  opportunity,
+  onRemove,
+}: {
+  opportunity: OpportunitySummary;
+  onRemove: () => void;
+}) {
+  const title = opportunity.product?.displayName ?? opportunity.title;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+      transition={{ duration: 0.2 }}
+      className="overflow-hidden"
+    >
+      <Card className="p-4">
+        <div className="flex flex-col gap-4 md:flex-row">
+          <ListingImage src={opportunity.imageUrl} alt={title} className="h-28 w-full rounded-[10px] md:h-20 md:w-20" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Link to={`/opportunities/${opportunity.listingId}`} className="text-[16px] font-semibold tracking-tight">
+                  {title}
+                </Link>
+                {opportunity.description ? <p className="mt-1 text-sm text-muted">{opportunity.description}</p> : null}
+                <div className="mt-1">
+                  <MarketplaceBadge source={opportunity.source} />
+                </div>
+              </div>
+              <ProfitBadge profit={opportunity.projectedRestorerNet} />
+            </div>
+            <div className="mt-3">
+              <MetricRow
+                asking={opportunity.price}
+                value={opportunity.product?.estimatedWorkingMarketValue ?? 0}
+                repair={opportunity.estimatedRepairCost}
+              />
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Button variant="secondary" asChild>
+                <Link to={`/opportunities/${opportunity.listingId}`}>View</Link>
+              </Button>
+              <Button asChild>
+                <a href={opportunity.url} target="_blank" rel="noopener noreferrer">
+                  Open Listing
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </Button>
+              <Button type="button" variant="danger" aria-label="Remove saved opportunity" onClick={onRemove}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  );
+}
+
+export function SavedDealList({
+  items,
+  onRemove,
+}: {
+  items: OpportunitySummary[];
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <AnimatePresence initial={false}>
+        {items.map((item) => (
+          <SavedDealCard key={item.listingId} opportunity={item} onRemove={() => onRemove(item.listingId)} />
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}

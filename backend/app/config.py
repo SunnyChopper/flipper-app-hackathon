@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     apify_ebay_actor: str = "datascrapers~ebay-scraper"
     apify_run_timeout_seconds: int = 180
     openai_api_key: str = ""
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://localhost:5174"
 
     @property
     def cors_origin_list(self) -> list[str]:
