@@ -1,7 +1,9 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { RequireAuth } from "@/auth/RequireAuth";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { LoginPage } from "@/pages/LoginPage";
 import { RadarPage } from "@/pages/RadarPage";
 import { OpportunityPage } from "@/pages/OpportunityPage";
 import { SavedPage } from "@/pages/SavedPage";
@@ -34,11 +36,16 @@ function AppShell() {
 export function AppRouter() {
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<AppShell />}>
+          <Route path="/" element={<Navigate to="/radar" replace />} />
+          <Route path="/radar" element={<RadarPage />} />
+          <Route path="/opportunities/:id" element={<OpportunityPage />} />
+          <Route path="/saved" element={<SavedPage />} />
+        </Route>
+      </Route>
       <Route element={<AppShell />}>
-        <Route path="/" element={<Navigate to="/radar" replace />} />
-        <Route path="/radar" element={<RadarPage />} />
-        <Route path="/opportunities/:id" element={<OpportunityPage />} />
-        <Route path="/saved" element={<SavedPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

@@ -1,7 +1,9 @@
-import { Zap } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { LogOut } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "@/auth/AuthProvider";
 import { cn } from "@/lib/cn";
 import { useApiHealth } from "@/hooks/useApiHealth";
+import { useSavedStore } from "@/store/savedStore";
 
 const links = [
   { to: "/radar", label: "Radar" },
@@ -10,7 +12,18 @@ const links = [
 
 export function AppHeader() {
   const { health, error, loading } = useApiHealth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const apiLabel = loading ? "Checking API…" : health?.status === "ok" ? "API connected" : "API offline";
+
+  async function onSignOut() {
+    try {
+      await signOut();
+    } finally {
+      useSavedStore.getState().replace([]);
+      navigate("/login");
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 h-16 bg-nav text-white">
@@ -43,7 +56,7 @@ export function AppHeader() {
           </span>
         </div>
 
-        <nav className="flex items-center justify-end gap-6 md:justify-center">
+        <nav className="flex items-center justify-end gap-4 md:justify-center md:gap-6">
           {links.map((link) => (
             <NavLink
               key={link.to}
@@ -63,12 +76,45 @@ export function AppHeader() {
               )}
             </NavLink>
           ))}
+          {user ? (
+            <button
+              type="button"
+              onClick={() => void onSignOut()}
+              className="text-sm text-[#cbd5e1] md:hidden"
+            >
+              Sign out
+            </button>
+          ) : (
+            <NavLink to="/login" className="text-sm text-[#cbd5e1] md:hidden">
+              Sign in
+            </NavLink>
+          )}
         </nav>
 
-        <p className="hidden items-center justify-self-end gap-1.5 text-xs text-[#94a3b8] md:flex">
-          <Zap className="h-3.5 w-3.5 text-primary" />
-          Find deals. Flip smarter.
-        </p>
+        <div className="hidden items-center justify-self-end gap-3 md:flex">
+          {user ? (
+            <>
+              <span className="max-w-[180px] truncate text-xs text-[#94a3b8]" title={user.email ?? undefined}>
+                {user.email}
+              </span>
+              <button
+                type="button"
+                onClick={() => void onSignOut()}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#cbd5e1] transition hover:bg-white/5 hover:text-white"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                Sign out
+              </button>
+            </>
+          ) : (
+            <NavLink
+              to="/login"
+              className="rounded-md px-2.5 py-1 text-xs font-medium text-white transition hover:bg-white/5"
+            >
+              Sign in
+            </NavLink>
+          )}
+        </div>
       </div>
     </header>
   );

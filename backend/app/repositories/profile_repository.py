@@ -11,6 +11,20 @@ class ProfileRepository:
     def get_profile(self, user_id: str) -> Profile | None:
         return self.store.profiles.get(user_id)
 
+    def ensure_profile(self, user_id: str) -> Profile:
+        existing = self.get_profile(user_id)
+        if existing:
+            return existing
+        profile = Profile(
+            id=user_id,
+            persona="restorer",
+            min_profit_margin_usd=100,
+            min_roi_percent=20,
+        )
+        self.upsert_profile(profile)
+        self.replace_skills(user_id, ["screen_swap", "battery_replacement"])
+        return profile
+
     def upsert_profile(self, profile: Profile) -> Profile:
         self.store.profiles[profile.id] = profile
         return profile
