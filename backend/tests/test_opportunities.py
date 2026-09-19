@@ -61,6 +61,23 @@ def test_list_opportunities_search_query(client):
     assert all("iphone" in item["title"].lower() for item in body["items"])
 
 
+def test_list_opportunities_paginates(client):
+    first = client.get("/api/v1/opportunities", params={"page": 1, "pageSize": 2, "sort": "profit_desc"})
+    second = client.get("/api/v1/opportunities", params={"page": 2, "pageSize": 2, "sort": "profit_desc"})
+    assert first.status_code == 200
+    assert second.status_code == 200
+    first_body = first.json()
+    second_body = second.json()
+    assert first_body["page"] == 1
+    assert first_body["pageSize"] == 2
+    assert first_body["total"] == 6
+    assert len(first_body["items"]) == 2
+    assert len(second_body["items"]) == 2
+    assert {item["listingId"] for item in first_body["items"]}.isdisjoint(
+        {item["listingId"] for item in second_body["items"]}
+    )
+
+
 def test_get_opportunity_joins_product_bom_and_comps(client):
     response = client.get(f"/api/v1/opportunities/{LISTING_IPHONE_CRACKED}")
     assert response.status_code == 200

@@ -25,7 +25,7 @@ async def ingest_marketplaces(
 async def ingest_ebay(
     user_id: Annotated[str, Depends(get_current_user_id)],
     query: str = Query(default="iphone 13"),
-    limit: int = Query(default=8, ge=1, le=50),
+    limit: int = Query(default=20, ge=1, le=50),
 ) -> OpportunityListResponse:
     try:
         return await ingest_pipeline.run(
@@ -41,7 +41,7 @@ async def ingest_facebook(
     user_id: Annotated[str, Depends(get_current_user_id)],
     query: str = Query(default="iphone 13"),
     location: str = Query(default="united-states"),
-    limit: int = Query(default=8, ge=1, le=50),
+    limit: int = Query(default=20, ge=1, le=50),
 ) -> OpportunityListResponse:
     try:
         return await ingest_pipeline.run(

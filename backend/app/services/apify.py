@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from typing import Any
 from urllib.parse import quote
 
@@ -97,7 +98,7 @@ class FacebookMarketplaceClient:
         self,
         query: str,
         location: str = "united-states",
-        limit: int = 8,
+        limit: int = 20,
     ) -> list[Listing]:
         if not self.client.enabled:
             return self._mock_listings(query, location)
@@ -129,35 +130,42 @@ class FacebookMarketplaceClient:
         return listings[:limit]
 
     def _mock_listings(self, query: str, location: str) -> list[Listing]:
-        title = query or "KitchenAid mixer, bowl dented, runs great"
+        slug = _query_slug(query)
+        title = query or "KitchenAid mixer broken"
         return [
             Listing(
-                id="fb-mock-1",
+                id=f"fb-mock-{slug}-1",
                 source="facebook",
-                external_id="fb-mock-1",
-                title=title if "kitchen" in title.lower() else f"{title} — local pickup",
-                description="Seller wants gone today. Item powers on. Minor cosmetic wear.",
+                external_id=f"fb-mock-{slug}-1",
+                title=f"{title} — dented bowl, motor does not work",
+                description="Does not work. Bowl is dented. Sold as-is for parts.",
                 price=65,
-                url="https://www.facebook.com/marketplace/item/mock-kitchenaid",
+                url=f"https://www.facebook.com/marketplace/item/mock-{slug}-1",
                 image_url="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800",
                 location=location,
                 seller_name="Neighborhood seller",
+                condition_label="For parts",
                 raw={"mock": True, "actor": settings.apify_facebook_actor},
             ),
             Listing(
-                id="fb-mock-2",
+                id=f"fb-mock-{slug}-2",
                 source="facebook",
-                external_id="fb-mock-2",
-                title=f"{query or 'DeWalt drill'} — missing charger, batteries included",
-                description="Two packs take a charge. No charger in the box.",
+                external_id=f"fb-mock-{slug}-2",
+                title=f"{query or 'DeWalt drill'} — cracked case, not working",
+                description="Trigger is broken. Case is cracked. Batteries included, sold for parts.",
                 price=40,
-                url="https://www.facebook.com/marketplace/item/mock-dewalt",
+                url=f"https://www.facebook.com/marketplace/item/mock-{slug}-2",
                 image_url="https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800",
                 location=location,
                 seller_name="Tool dump",
+                condition_label="Damaged",
                 raw={"mock": True, "actor": settings.apify_facebook_actor},
             ),
         ]
+
+
+def _query_slug(query: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", (query or "item").lower()).strip("-") or "item"
 
 
 def _marketplace_slug(location: str) -> str:

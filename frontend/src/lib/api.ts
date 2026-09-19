@@ -7,6 +7,19 @@ export type ApiHealth = {
   ebay: boolean;
   apify: boolean;
   llm: boolean;
+  crawl?: {
+    enabled: boolean;
+    intervalSeconds: number;
+    running: boolean;
+    lastCategory: string | null;
+    lastQuery: string | null;
+    lastInserted: number;
+    lastSkipped: number;
+    lastRejected: number;
+    lastError: string | null;
+    lastRunAt: string | null;
+    nextCategory: string | null;
+  };
 };
 
 export async function fetchHealth(): Promise<ApiHealth> {

@@ -23,14 +23,3 @@ export async function getOpportunities(filters: RadarFilters = {}): Promise<Oppo
 export async function getOpportunity(listingId: string): Promise<OpportunityDetail> {
   return apiFetch<OpportunityDetail>(`/api/v1/opportunities/${listingId}`);
 }
-
-export async function ingestMarketplaces(query: string, limit = 5): Promise<OpportunityListResponse> {
-  return apiFetch<OpportunityListResponse>("/api/v1/ingest", {
-    method: "POST",
-    body: JSON.stringify({
-      query,
-      limit,
-      sources: ["ebay", "facebook_marketplace"],
-    }),
-  });
-}

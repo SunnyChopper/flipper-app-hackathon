@@ -18,8 +18,11 @@ class Settings(BaseSettings):
     apify_facebook_actor: str = "apify~facebook-marketplace-scraper"
     apify_ebay_actor: str = "datascrapers~ebay-scraper"
     apify_run_timeout_seconds: int = 180
-    apify_max_items: int = 5
-    apify_ingest_sources: str = "ebay"
+    apify_max_items: int = 20
+    apify_ingest_sources: str = "ebay,facebook"
+    crawl_enabled: bool = False
+    crawl_interval_seconds: int = 60
+    crawl_categories: str = "phones,tvs,electronics,other"
     openai_api_key: str = ""
     cors_origins: str = "http://localhost:5173,http://localhost:5174"
 

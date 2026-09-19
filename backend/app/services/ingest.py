@@ -2,26 +2,37 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from dataclasses import dataclass, field
 
 from app.config import settings
 from app.data.ids import DEMO_USER_ID
+from app.domain.entities import Listing
 from app.models.ingest import IngestRequest
 from app.models.listing import Listing as ScrapedListing
-from app.repositories.memory_store import memory_store
+from app.repositories.listing_repository import ListingRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.opportunity import OpportunityListResponse
 from app.services.apify import facebook_marketplace
 from app.services.catalog_match import to_domain_listing
+from app.services.condition_filter import looks_broken_or_poor
 from app.services.ebay import ebay_client
 from app.services.opportunity_service import opportunity_service
 
 logger = logging.getLogger(__name__)
 
 
-class IngestPipeline:
-    """Apify listings → catalog match + valuation → memory store → Opportunity DTOs."""
+@dataclass
+class PersistResult:
+    inserted: list[Listing] = field(default_factory=list)
+    skipped: list[Listing] = field(default_factory=list)
+    rejected: list[ScrapedListing] = field(default_factory=list)
 
-    def __init__(self) -> None:
+
+class IngestPipeline:
+    """Apify listings → catalog match + valuation → store (deduped) → Opportunity DTOs."""
+
+    def __init__(self, listings: ListingRepository | None = None) -> None:
+        self.listings = listings or ListingRepository()
         self.products = ProductRepository()
 
     async def collect(self, request: IngestRequest) -> list[ScrapedListing]:
@@ -66,13 +77,29 @@ class IngestPipeline:
             raise RuntimeError("; ".join(errors))
         return listings
 
-    async def run(self, request: IngestRequest, user_id: str | None = None) -> OpportunityListResponse:
+    async def persist(self, request: IngestRequest) -> PersistResult:
         scraped = await self.collect(request)
+        result = PersistResult()
+        for row in scraped:
+            if (row.currency or "USD").upper() != "USD":
+                result.rejected.append(row)
+                continue
+            if not looks_broken_or_poor(row):
+                result.rejected.append(row)
+                continue
+            domain = to_domain_listing(row, self.products)
+            stored, inserted = self.listings.insert_if_new(domain)
+            if inserted:
+                result.inserted.append(stored)
+            else:
+                result.skipped.append(stored)
+        return result
+
+    async def run(self, request: IngestRequest, user_id: str | None = None) -> OpportunityListResponse:
+        persisted = await self.persist(request)
         owner = user_id or DEMO_USER_ID
         items = []
-        for row in scraped:
-            domain = to_domain_listing(row, self.products)
-            stored = memory_store.upsert_listing(domain)
+        for stored in persisted.inserted + persisted.skipped:
             summary = opportunity_service.summary_for_listing(owner, stored.id)
             if summary:
                 items.append(summary)

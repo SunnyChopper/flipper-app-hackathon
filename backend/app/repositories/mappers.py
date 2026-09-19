@@ -35,6 +35,33 @@ def as_datetime(value: object) -> datetime | None:
     return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
 
 
+def listing_to_row(listing: Listing) -> dict:
+    image_url = listing.image_urls[0] if listing.image_urls else None
+    return {
+        "id": listing.id,
+        "source": listing.source,
+        "external_id": listing.external_id,
+        "title": listing.title,
+        "description": listing.description or "",
+        "price": listing.price,
+        "currency": "USD",
+        "url": listing.url,
+        "image_url": image_url,
+        "image_urls": listing.image_urls,
+        "shipping_cost": listing.shipping_cost,
+        "condition": listing.condition,
+        "listed_at": listing.listed_at.isoformat() if listing.listed_at else None,
+        "created_at": listing.created_at.isoformat(),
+        "matched_product_id": listing.matched_product_id,
+        "detected_defective_bom_ids": listing.detected_defective_bom_ids,
+        "required_repair_skills": listing.required_repair_skills,
+        "projected_restorer_net": listing.projected_restorer_net,
+        "projected_harvest_yield": listing.projected_harvest_yield,
+        "last_crawled_at": listing.created_at.isoformat(),
+        "raw": {},
+    }
+
+
 def listing_from_row(row: dict) -> Listing:
     created_at = as_datetime(row.get("created_at"))
     if created_at is None:
