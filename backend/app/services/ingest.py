@@ -81,6 +81,9 @@ class IngestPipeline:
         scraped = await self.collect(request)
         result = PersistResult()
         for row in scraped:
+            if (row.currency or "USD").upper() != "USD":
+                result.rejected.append(row)
+                continue
             if not looks_broken_or_poor(row):
                 result.rejected.append(row)
                 continue

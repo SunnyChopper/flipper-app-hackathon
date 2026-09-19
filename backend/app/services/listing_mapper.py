@@ -15,6 +15,9 @@ from app.models.sources import (
 )
 
 ITM_ID = re.compile(r"/itm/(?:[^/]*?/)?(\d{6,})")
+CURRENCY_CODE = re.compile(r"\b([A-Z]{3})\b")
+NON_USD_SYMBOLS = ("€", "£", "¥", "₹", "₩", "₽")
+NON_USD_DOLLAR_PREFIXES = ("C$", "CA$", "A$", "AU$", "NZ$", "HK$")
 
 
 def parse_money(value: MoneyAmount | str | float | int | None) -> tuple[float | None, str]:
@@ -63,6 +66,8 @@ def listing_from_facebook(item: FacebookMarketplaceItem) -> Listing | None:
         return None
     if item.is_hidden:
         return None
+    if not is_usd(currency, item.listing_price, item.price):
+        return None
 
     location = _facebook_location(item)
     image_url = _facebook_image(item)
@@ -76,7 +81,7 @@ def listing_from_facebook(item: FacebookMarketplaceItem) -> Listing | None:
         title=title.strip(),
         description=description,
         price=price,
-        currency=currency,
+        currency="USD",
         url=url,
         image_url=image_url,
         location=location,
@@ -103,9 +108,16 @@ def listing_from_ebay(item: EbayApifyItem) -> Listing | None:
     price, currency = parse_money(item.price)
     if price is None:
         price, currency = parse_money(item.formattedPrice)
-    if item.currency:
-        currency = item.currency
     if not external_id or not title or price is None or not url:
+        return None
+    if not is_usd(
+        currency,
+        item.currency,
+        item.formattedPrice,
+        item.price,
+        item.shippingCost,
+        item.shipping,
+    ):
         return None
 
     shipping, _ = parse_money(item.shippingCost if item.shippingCost is not None else item.shipping)
@@ -119,7 +131,7 @@ def listing_from_ebay(item: EbayApifyItem) -> Listing | None:
         title=title,
         description=(item.description or item.shortDescription or "").strip(),
         price=price,
-        currency=currency,
+        currency="USD",
         url=url,
         image_url=image_url,
         location=_ebay_location(item),
@@ -218,6 +230,37 @@ def _photo_url(photo: object) -> str | None:
     if image and getattr(image, "uri", None):
         return image.uri
     return getattr(photo, "uri", None) or getattr(photo, "photo_image_url", None)
+
+
+def is_usd(*hints: object) -> bool:
+    """Keep listings only when every detected currency is USD."""
+    for hint in hints:
+        code = _currency_hint(hint)
+        if code and code != "USD":
+            return False
+    return True
+
+
+def _currency_hint(value: object) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, MoneyAmount):
+        return _currency_hint(value.currency) or _currency_hint(value.formatted_amount)
+    if isinstance(value, (int, float)):
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    if any(prefix in text for prefix in NON_USD_DOLLAR_PREFIXES):
+        return "FOREIGN"
+    match = CURRENCY_CODE.search(text.upper())
+    if match:
+        return match.group(1)
+    if any(symbol in text for symbol in NON_USD_SYMBOLS):
+        return "FOREIGN"
+    if "$" in text:
+        return "USD"
+    return None
 
 
 def _as_text(value: str | TextBlob | None) -> str:

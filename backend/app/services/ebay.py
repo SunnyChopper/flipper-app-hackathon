@@ -31,6 +31,7 @@ class EbayClient:
             "proxyConfiguration": {
                 "useApifyProxy": True,
                 "apifyProxyGroups": ["RESIDENTIAL"],
+                "apifyProxyCountry": "US",
             },
         }
         try:
