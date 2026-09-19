@@ -6,9 +6,11 @@ class Settings(BaseSettings):
 
     supabase_url: str = ""
     supabase_service_role_key: str = ""
-    ebay_app_id: str = ""
-    ebay_cert_id: str = ""
+    ebay_marketplace_id: str = "EBAY_US"
     apify_token: str = ""
+    apify_facebook_actor: str = "apify~facebook-marketplace-scraper"
+    apify_ebay_actor: str = "datascrapers~ebay-scraper"
+    apify_run_timeout_seconds: int = 180
     openai_api_key: str = ""
     cors_origins: str = "http://localhost:5173"
 

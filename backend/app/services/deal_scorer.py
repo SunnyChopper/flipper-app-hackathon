@@ -26,7 +26,8 @@ class DealScorer:
         damage = product.attributes.get("damage_hints") or []
         repair_estimate = round(25 * len(damage), 2)
         fees_estimate = round(estimated_resale * CATEGORY_FEES.get(listing.source, 0.1), 2)
-        net_profit = round(estimated_resale - listing.price - repair_estimate - fees_estimate, 2)
+        shipping = listing.shipping_cost or 0
+        net_profit = round(estimated_resale - listing.price - shipping - repair_estimate - fees_estimate, 2)
         profit_margin = round((net_profit / listing.price) * 100, 1) if listing.price else 0
 
         risk = min(100, 20 + 15 * len(damage) + (25 if product.condition == "for_parts" else 0))

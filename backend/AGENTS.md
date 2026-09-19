@@ -15,7 +15,7 @@ uvicorn app.main:app --reload --port 8000
 
 - `app/main.py` — FastAPI app and CORS
 - `app/api/` — HTTP routes only
-- `app/services/ebay.py` — eBay fetch
+- `app/services/ebay.py` — eBay fetch via Apify
 - `app/services/apify.py` — Facebook Marketplace via Apify
 - `app/services/analyzer.py` — title/description (and later vision) normalization
 - `app/services/deal_scorer.py` — profit / risk / overall score
