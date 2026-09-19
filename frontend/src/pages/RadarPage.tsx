@@ -7,19 +7,51 @@ import { RadarFilters } from "@/components/filters/RadarFilters";
 import { OpportunityCard } from "@/components/opportunity/OpportunityCard";
 import { OpportunityCardSkeleton } from "@/components/opportunity/Skeletons";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useOpportunities } from "@/hooks/useOpportunities";
 import { useOpportunityStore } from "@/store/opportunityStore";
+import { ingestMarketplaces } from "@/api/opportunities";
+import { useToastStore } from "@/store/toastStore";
 import type { MarketplaceSource, OpportunitySort } from "@/types/opportunity";
 
 export function RadarPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [hydrated, setHydrated] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const query = useOpportunityStore((state) => state.query);
   const setQuery = useOpportunityStore((state) => state.setQuery);
   const setFilters = useOpportunityStore((state) => state.setFilters);
   const reset = useOpportunityStore((state) => state.reset);
-  const { items, total, loading, error, refetch } = useOpportunities();
+  const { items, total, loading, error, refetch, applyList } = useOpportunities();
+  const showToast = useToastStore((state) => state.show);
+
+  async function scanMarketplaces() {
+    const term = query.trim();
+    if (!term) {
+      showToast("Type something to search, like tvs or iPhone 13.");
+      return;
+    }
+    if (scanning) return;
+    setScanning(true);
+    try {
+      const result = await ingestMarketplaces(term, 5);
+      setFilters({
+        condition: "all",
+        category: "all",
+        source: "all",
+        minProfit: null,
+        minRoi: null,
+        maxPrice: null,
+      });
+      applyList(result);
+      showToast(`Found ${result.total} marketplace listing${result.total === 1 ? "" : "s"}`);
+    } catch {
+      showToast("Marketplace scan failed. Is the API running?");
+    } finally {
+      setScanning(false);
+    }
+  }
 
   useEffect(() => {
     setFilters({
@@ -71,13 +103,23 @@ export function RadarPage() {
       </p>
 
       <div className="mt-6">
-        <SearchBar value={query} onChange={setQuery} onSubmit={() => void refetch()} />
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          onSubmit={() => void scanMarketplaces()}
+          disabled={scanning}
+        />
       </div>
       <div className="mt-4">
         <RadarFilters />
       </div>
 
-      <p className="mt-6 text-[13px] text-muted">{loading ? "Searching…" : resultLabel}</p>
+      <p className="mt-6 flex flex-wrap items-center justify-between gap-3 text-[13px] text-muted">
+        <span>{loading || scanning ? "Searching…" : resultLabel}</span>
+        <Button type="button" variant="outline" disabled={scanning} onClick={() => void scanMarketplaces()}>
+          {scanning ? "Scanning…" : "Scan marketplaces"}
+        </Button>
+      </p>
 
       {loading ? (
         <div className="mt-4 space-y-3">
@@ -110,7 +152,7 @@ export function RadarPage() {
         <EmptyState
           icon={<Search className="h-8 w-8" />}
           title="No opportunities match these filters."
-          description="Try lowering your minimum profit or increasing your maximum purchase price."
+          description="No loaded listings match this query and filters. Click Search to scrape eBay."
           actionLabel="Reset Filters"
           onAction={reset}
         />

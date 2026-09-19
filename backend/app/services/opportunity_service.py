@@ -90,7 +90,7 @@ class OpportunityService:
                         product.variant if product and product.variant else "",
                     ]
                 ).lower()
-                if needle not in haystack:
+                if not _query_matches(haystack, needle):
                     continue
             if filters.source and listing.source != filters.source:
                 continue
@@ -209,3 +209,16 @@ class OpportunityService:
 
 
 opportunity_service = OpportunityService()
+
+QUERY_ALIASES = {
+    "tvs": "tv",
+    "television": "tv",
+    "televisions": "tv",
+}
+
+
+def _query_matches(haystack: str, needle: str) -> bool:
+    if needle in haystack:
+        return True
+    tokens = [QUERY_ALIASES.get(part, part) for part in needle.split() if part]
+    return bool(tokens) and all(token in haystack for token in tokens)

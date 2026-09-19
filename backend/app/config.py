@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     apify_facebook_actor: str = "apify~facebook-marketplace-scraper"
     apify_ebay_actor: str = "datascrapers~ebay-scraper"
     apify_run_timeout_seconds: int = 180
+    apify_max_items: int = 5
+    apify_ingest_sources: str = "ebay"
     openai_api_key: str = ""
     cors_origins: str = "http://localhost:5173,http://localhost:5174"
 
@@ -21,6 +23,11 @@ class Settings(BaseSettings):
     @property
     def supabase_enabled(self) -> bool:
         return bool(self.supabase_url and self.supabase_service_role_key)
+
+    @property
+    def ingest_source_list(self) -> list[str]:
+        raw = [part.strip() for part in self.apify_ingest_sources.split(",") if part.strip()]
+        return raw or ["ebay"]
 
 
 settings = Settings()

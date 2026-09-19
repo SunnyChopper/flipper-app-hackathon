@@ -41,6 +41,15 @@ class MemoryStore:
         self.user_deals: dict[str, UserDeal] = {}
         self.searches: dict[str, SavedSearch] = {}
 
+    def upsert_listing(self, listing: Listing) -> Listing:
+        for existing in list(self.listings.values()):
+            if existing.source == listing.source and existing.external_id == listing.external_id:
+                listing.id = existing.id
+                self.listings[existing.id] = listing
+                return listing
+        self.listings[listing.id] = listing
+        return listing
+
     def user_deal_for(self, user_id: str, listing_id: str) -> UserDeal | None:
         for deal in self.user_deals.values():
             if deal.user_id == user_id and deal.listing_id == listing_id:

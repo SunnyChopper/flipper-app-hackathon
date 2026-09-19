@@ -56,5 +56,6 @@ export function useOpportunities() {
     loading,
     error,
     refetch,
+    applyList: setData,
   };
 }
