@@ -4,13 +4,14 @@ import { Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { SearchBar } from "@/components/filters/SearchBar";
 import { RadarFilters } from "@/components/filters/RadarFilters";
+import { Pagination } from "@/components/filters/Pagination";
 import { OpportunityCard } from "@/components/opportunity/OpportunityCard";
 import { OpportunityCardSkeleton } from "@/components/opportunity/Skeletons";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useOpportunities } from "@/hooks/useOpportunities";
-import { useOpportunityStore } from "@/store/opportunityStore";
+import { RADAR_PAGE_SIZE, useOpportunityStore } from "@/store/opportunityStore";
 import type { MarketplaceSource, OpportunitySort } from "@/types/opportunity";
 
 export function RadarPage() {
@@ -19,8 +20,9 @@ export function RadarPage() {
   const query = useOpportunityStore((state) => state.query);
   const setQuery = useOpportunityStore((state) => state.setQuery);
   const setFilters = useOpportunityStore((state) => state.setFilters);
+  const setPage = useOpportunityStore((state) => state.setPage);
   const reset = useOpportunityStore((state) => state.reset);
-  const { items, total, loading, error, refetch } = useOpportunities();
+  const { items, total, page, pageSize, loading, error, refetch } = useOpportunities();
 
   useEffect(() => {
     setFilters({
@@ -32,6 +34,7 @@ export function RadarPage() {
       minRoi: searchParams.get("minRoi") ? Number(searchParams.get("minRoi")) : null,
       maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : null,
       sort: (searchParams.get("sort") as OpportunitySort) ?? "score_desc",
+      page: Math.max(1, Number(searchParams.get("page") || "1") || 1),
     });
     setHydrated(true);
     // Hydrate once from the incoming URL.
@@ -45,6 +48,7 @@ export function RadarPage() {
   const minRoi = useOpportunityStore((state) => state.minRoi);
   const maxPrice = useOpportunityStore((state) => state.maxPrice);
   const sort = useOpportunityStore((state) => state.sort);
+  const storePage = useOpportunityStore((state) => state.page);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -57,11 +61,12 @@ export function RadarPage() {
     if (minRoi != null) next.set("minRoi", String(minRoi));
     if (maxPrice != null) next.set("maxPrice", String(maxPrice));
     if (sort !== "score_desc") next.set("sort", sort);
+    if (storePage > 1) next.set("page", String(storePage));
     setSearchParams(next, { replace: true });
-  }, [hydrated, query, category, source, condition, minProfit, minRoi, maxPrice, sort, setSearchParams]);
+  }, [hydrated, query, category, source, condition, minProfit, minRoi, maxPrice, sort, storePage, setSearchParams]);
 
   const resultLabel = query.trim()
-    ? `${items.length} result${items.length === 1 ? "" : "s"} for “${query.trim()}”`
+    ? `${total} result${total === 1 ? "" : "s"} for “${query.trim()}”`
     : `${total} opportunit${total === 1 ? "y" : "ies"}`;
 
   return (
@@ -112,6 +117,16 @@ export function RadarPage() {
               <OpportunityCard opportunity={item} />
             </motion.div>
           ))}
+          <Pagination
+            page={page}
+            pageSize={pageSize || RADAR_PAGE_SIZE}
+            total={total}
+            disabled={loading}
+            onPageChange={(nextPage) => {
+              setPage(nextPage);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
         </div>
       ) : (
         <EmptyState

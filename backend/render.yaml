@@ -23,3 +23,5 @@ services:
         value: apify~facebook-marketplace-scraper
       - key: OPENAI_API_KEY
         sync: false
+      - key: CRAWL_ENABLED
+        value: "false"

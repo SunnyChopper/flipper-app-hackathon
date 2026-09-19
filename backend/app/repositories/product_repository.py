@@ -23,6 +23,7 @@ class ProductRepository:
         self.store = store or memory_store
         self._client = client
         self._client_bound = client is not None
+        self._bom_cache: list[ProductBOMItem] | None = None
 
     @property
     def client(self):
@@ -35,6 +36,7 @@ class ProductRepository:
     def client(self, value) -> None:
         self._client = value
         self._client_bound = True
+        self._bom_cache = None
 
     def get(self, product_id: str | None) -> CatalogProduct | None:
         if not product_id:
@@ -46,18 +48,21 @@ class ProductRepository:
 
     def bom_for_product(self, product_id: str) -> list[ProductBOMItem]:
         if self.client:
-            return [bom_item_from_row(row) for row in self._select("product_bom_items", product_id=product_id)]
+            return [item for item in self._all_bom_items() if item.product_id == product_id]
         return [item for item in self.store.bom_items.values() if item.product_id == product_id]
 
     def bom_by_ids(self, bom_ids: list[str]) -> list[ProductBOMItem]:
+        if not bom_ids:
+            return []
+        wanted = set(bom_ids)
         if self.client:
-            wanted = set(bom_ids)
-            return [
-                bom_item_from_row(row)
-                for row in self._select("product_bom_items")
-                if str(row.get("id")) in wanted
-            ]
+            return [item for item in self._all_bom_items() if item.id in wanted]
         return [self.store.bom_items[bom_id] for bom_id in bom_ids if bom_id in self.store.bom_items]
+
+    def _all_bom_items(self) -> list[ProductBOMItem]:
+        if self._bom_cache is None:
+            self._bom_cache = [bom_item_from_row(row) for row in self._select("product_bom_items")]
+        return self._bom_cache
 
     def component(self, component_id: str) -> Component | None:
         if self.client:
