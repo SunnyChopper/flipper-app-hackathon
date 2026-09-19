@@ -1,0 +1,13 @@
+---
+description: Supabase schema conventions for Deal Sniper
+globs: supabase/**/*.sql
+alwaysApply: false
+---
+
+# Supabase
+
+Follow `supabase/AGENTS.md` and the `supabase-data` skill.
+
+- Additive migrations only
+- Keep RLS enabled
+- `deal_scores` stays in the Realtime publication for live snipes

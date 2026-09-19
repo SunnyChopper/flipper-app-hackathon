@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# builds
+dist/
+build/
+*.egg-info/
+
+# env / secrets
+.env
+.env.local
+.env.*.local
+
+# editors / os
+.DS_Store
+.vscode/
+.idea/
+
+# logs
+*.log
+npm-debug.log*
+
+# local scratch
+.tmp-pdf/
+.cursor-tmp/

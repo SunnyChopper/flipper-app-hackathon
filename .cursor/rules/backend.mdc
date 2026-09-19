@@ -1,0 +1,13 @@
+---
+description: FastAPI backend conventions for Deal Sniper
+globs: backend/**/*.py
+alwaysApply: false
+---
+
+# Backend
+
+Follow `backend/AGENTS.md` and the `backend-fastapi` skill.
+
+- Routes in `app/api/`
+- eBay / Apify / analyzer / scorer in `app/services/`
+- Keep mock fallbacks when third-party keys are missing

@@ -1,0 +1,13 @@
+---
+description: React frontend conventions for Deal Sniper
+globs: frontend/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# Frontend
+
+Follow `frontend/AGENTS.md` and the `frontend-deals-ui` skill.
+
+- Use `src/lib/api.ts` for FastAPI
+- Use `src/lib/supabase.ts` for Auth/Realtime only
+- Render `Deal.score` from the API; do not recompute profit in components

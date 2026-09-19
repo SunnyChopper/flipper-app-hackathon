@@ -1,0 +1,10 @@
+---
+description: Deal Sniper project conventions for the monorepo
+alwaysApply: true
+---
+
+# Deal Sniper
+
+Read `AGENTS.md` at the repo root. Then read the `AGENTS.md` and `SKILL.md` in the package you are editing (`frontend/`, `backend/`, or `supabase/`).
+
+Keep marketplace collection and scoring in FastAPI. Keep Auth/Realtime in Supabase. Keep the React app as a client of those two services.
