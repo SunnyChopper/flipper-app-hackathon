@@ -1,7 +1,37 @@
 import { getAccessToken } from "@/lib/supabase";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8000";
+export type ApiEnv = {
+  VITE_API_BASE_URL?: string;
+  VITE_API_URL?: string;
+  DEV?: boolean | string;
+};
+
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/$/, "");
+}
+
+function isLocalhostUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return host === "localhost" || host === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
+export function resolveApiBaseUrl(
+  env: ApiEnv = import.meta.env,
+  origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:8000",
+): string {
+  const configured = (env.VITE_API_BASE_URL || env.VITE_API_URL || "").trim();
+  const isDev = env.DEV === true || env.DEV === "true";
+  if (configured && (isDev || !isLocalhostUrl(configured))) {
+    return stripTrailingSlash(configured);
+  }
+  return stripTrailingSlash(origin);
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export class ApiError extends Error {
   status: number;
