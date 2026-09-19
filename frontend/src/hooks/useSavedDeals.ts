@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { deleteDeal, getDeals, saveDeal } from "@/api/deals";
 import type { SavedDealItem } from "@/api/deals";
+import { useAuth } from "@/auth/AuthProvider";
 import { useSavedStore } from "@/store/savedStore";
 import { useToastStore } from "@/store/toastStore";
 
 export function useHydrateSavedDeals() {
   const replace = useSavedStore((state) => state.replace);
+  const { configured, loading, user } = useAuth();
 
   useEffect(() => {
+    if (loading) return;
+    if (configured && !user) {
+      replace([]);
+      return;
+    }
     let cancelled = false;
     void getDeals("saved")
       .then((result) => {
@@ -17,7 +24,7 @@ export function useHydrateSavedDeals() {
     return () => {
       cancelled = true;
     };
-  }, [replace]);
+  }, [configured, loading, replace, user?.id]);
 }
 
 export function useDealMutations() {
@@ -73,11 +80,19 @@ export function useDealMutations() {
 
 export function useSavedDeals() {
   const { remove, save, toggle, isSaved } = useDealMutations();
+  const { configured, loading: authLoading, user } = useAuth();
   const [items, setItems] = useState<SavedDealItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
+    if (configured && !user) {
+      setItems([]);
+      useSavedStore.getState().replace([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const result = await getDeals("saved");
@@ -89,11 +104,12 @@ export function useSavedDeals() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [configured, user]);
 
   useEffect(() => {
+    if (authLoading) return;
     void refetch();
-  }, [refetch]);
+  }, [authLoading, refetch]);
 
   const removeAndRefresh = useCallback(
     async (listingId: string) => {

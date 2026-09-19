@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from app.repositories.memory_store import DEMO_USER
+from app.auth import get_current_user_id
 from app.schemas.common import MarketplaceSource, OpportunitySort
 from app.schemas.opportunity import OpportunityDetailResponse, OpportunityListResponse
 from app.services.opportunity_service import OpportunityFilters, opportunity_service
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/opportunities", tags=["opportunities"])
 
 @router.get("", response_model=OpportunityListResponse)
 def list_opportunities(
+    user_id: Annotated[str, Depends(get_current_user_id)],
     q: str | None = None,
     source: MarketplaceSource | None = None,
     category: str | None = None,
@@ -41,9 +42,12 @@ def list_opportunities(
         page=page,
         page_size=page_size,
     )
-    return opportunity_service.list_opportunities(DEMO_USER, filters)
+    return opportunity_service.list_opportunities(user_id, filters)
 
 
 @router.get("/{listing_id}", response_model=OpportunityDetailResponse)
-def get_opportunity(listing_id: str) -> OpportunityDetailResponse:
-    return opportunity_service.get_opportunity(DEMO_USER, listing_id)
+def get_opportunity(
+    listing_id: str,
+    user_id: Annotated[str, Depends(get_current_user_id)],
+) -> OpportunityDetailResponse:
+    return opportunity_service.get_opportunity(user_id, listing_id)

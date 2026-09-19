@@ -1,9 +1,10 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import type { ReactNode } from "react";
+import { AuthProvider } from "@/auth/AuthProvider";
 import { useHydrateSavedDeals } from "@/hooks/useSavedDeals";
 import { useToastStore } from "@/store/toastStore";
 
-export function Providers({ children }: { children: ReactNode }) {
+function AppEffects({ children }: { children: ReactNode }) {
   const message = useToastStore((state) => state.message);
   useHydrateSavedDeals();
 
@@ -16,5 +17,13 @@ export function Providers({ children }: { children: ReactNode }) {
         </div>
       ) : null}
     </TooltipPrimitive.Provider>
+  );
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <AppEffects>{children}</AppEffects>
+    </AuthProvider>
   );
 }
