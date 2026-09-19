@@ -21,20 +21,35 @@ class Analyzer:
 
     def _heuristic_normalize(self, listing: Listing) -> NormalizedProduct:
         title = listing.title
-        lowered = title.lower()
-        brand = next((name for name in ("dyson", "kitchenaid", "apple", "sony", "dewalt") if name in lowered), None)
-        condition = "for_parts" if any(word in lowered for word in ("parts", "broken", "not working")) else "used"
-        damage = [hint for hint in DAMAGE_HINTS if hint in lowered]
+        blob = f"{listing.title} {listing.description} {listing.condition_label or ''}".lower()
+        brand = next((name for name in ("dyson", "kitchenaid", "apple", "sony", "dewalt") if name in blob), None)
+        condition = self._guess_condition(blob, listing.condition_label)
+        damage = [hint for hint in DAMAGE_HINTS if hint in blob]
         cleaned = re.sub(r"\s+", " ", title).strip()
         return NormalizedProduct(
             listing_id=listing.id,
             brand=brand.title() if brand else None,
             model=None,
-            category=self._guess_category(lowered),
+            category=self._guess_category(blob),
             condition=condition,
             normalized_title=cleaned,
-            attributes={"damage_hints": damage, "source": listing.source},
+            attributes={
+                "damage_hints": damage,
+                "source": listing.source,
+                "condition_label": listing.condition_label,
+                "seller_name": listing.seller_name,
+            },
         )
+
+    def _guess_condition(self, text: str, condition_label: str | None) -> str:
+        label = (condition_label or "").lower()
+        if "part" in label or "not working" in label:
+            return "for_parts"
+        if any(word in text for word in ("parts", "broken", "not working")):
+            return "for_parts"
+        if "new" in label:
+            return "new"
+        return "used"
 
     def _guess_category(self, text: str) -> str:
         if any(word in text for word in ("iphone", "macbook", "ipad")):

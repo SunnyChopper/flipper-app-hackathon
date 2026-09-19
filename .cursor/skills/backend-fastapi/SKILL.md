@@ -10,7 +10,7 @@ description: Build and change the Deal Sniper FastAPI backend — routes, market
 1. Read `backend/AGENTS.md` and the existing service before adding a new module.
 2. Put HTTP in `app/api/`. Put marketplace and scoring logic in `app/services/`.
 3. Keep response models in `app/models/`. The frontend depends on `Deal`.
-4. Preserve mock fallbacks when `EBAY_APP_ID`, `APIFY_TOKEN`, or `OPENAI_API_KEY` are empty.
+4. Preserve mock fallbacks when `APIFY_TOKEN` or `OPENAI_API_KEY` are empty.
 
 ## Deal pipeline
 

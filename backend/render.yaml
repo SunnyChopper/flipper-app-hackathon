@@ -15,9 +15,11 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
-      - key: EBAY_APP_ID
-        sync: false
       - key: APIFY_TOKEN
         sync: false
+      - key: APIFY_EBAY_ACTOR
+        value: datascrapers~ebay-scraper
+      - key: APIFY_FACEBOOK_ACTOR
+        value: apify~facebook-marketplace-scraper
       - key: OPENAI_API_KEY
         sync: false

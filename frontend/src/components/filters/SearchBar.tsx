@@ -6,10 +6,12 @@ export function SearchBar({
   value,
   onChange,
   onSubmit,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
+  disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,9 +45,9 @@ export function SearchBar({
           className="h-12 w-full rounded-input border border-border bg-white pl-10 pr-3 text-sm outline-none transition hover:border-border-strong focus:border-primary"
         />
       </label>
-      <Button type="submit" className="h-12 px-5">
-        Search
-      </Button>
+        <Button type="submit" className="h-12 px-5" disabled={disabled}>
+          {disabled ? "Searching…" : "Search"}
+        </Button>
     </form>
   );
 }

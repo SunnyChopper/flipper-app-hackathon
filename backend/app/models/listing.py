@@ -7,6 +7,8 @@ Marketplace = Literal["ebay", "facebook"]
 
 
 class Listing(BaseModel):
+    """Canonical marketplace listing. Adapters map eBay / Apify payloads into this shape."""
+
     id: str
     source: Marketplace
     external_id: str
@@ -17,7 +19,11 @@ class Listing(BaseModel):
     url: str
     image_url: str | None = None
     location: str | None = None
-    raw: dict[str, Any] = Field(default_factory=dict)
+    condition_label: str | None = None
+    seller_name: str | None = None
+    shipping_cost: float | None = None
+    is_sold: bool = False
+    raw: dict[str, Any] = Field(default_factory=dict, exclude=True)
 
 
 class NormalizedProduct(BaseModel):

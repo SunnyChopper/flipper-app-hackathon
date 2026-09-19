@@ -7,7 +7,7 @@ description: Fetch and map eBay and Facebook Marketplace listings into Deal Snip
 
 ## Adapters
 
-- `backend/app/services/ebay.py` — eBay Browse API
+- `backend/app/services/ebay.py` — eBay via Apify
 - `backend/app/services/apify.py` — Facebook Marketplace via Apify
 - HTTP triggers in `backend/app/api/ingest.py`
 
