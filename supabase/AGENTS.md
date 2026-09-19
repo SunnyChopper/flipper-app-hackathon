@@ -7,9 +7,9 @@ Postgres, Auth, and Realtime for Deal Sniper.
 1. Create a Supabase project.
 2. Run every file in `migrations/` in order (SQL editor or `supabase db reset`).
 3. Run `seed.sql`.
-4. Copy project URL + anon key into `frontend/.env`.
-5. Copy project URL + service role key into `backend/.env`.
-6. In Authentication settings, add `http://localhost:5173` to Redirect URLs. For local demo, you can turn off “Confirm email”.
+4. In Vercel → Settings → Environment Variables, set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (backend). Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (frontend login). Publishable/secret keys map to anon/service_role.
+5. Do not set `VITE_API_URL` or `VITE_API_BASE_URL` on Vercel. The UI calls `/api` on the same deployment.
+6. In Authentication settings, add `http://localhost:5173` and the Vercel URL to Redirect URLs. For local demo, you can turn off “Confirm email”.
 
 ## Tables
 

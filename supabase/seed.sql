@@ -1,6 +1,40 @@
 -- Canonical catalog, BOM, and listing rows for local / hackathon screens.
 -- Safe to re-run after truncate of these tables.
 
+-- Demo API user (the hosted app has no Auth UI yet).
+do $$
+declare
+  demo_id uuid := '00000000-0000-4000-8000-000000000001';
+begin
+  if not exists (select 1 from auth.users where id = demo_id) then
+    insert into auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at
+    ) values (
+      '00000000-0000-0000-0000-000000000000',
+      demo_id,
+      'authenticated',
+      'authenticated',
+      'demo@dealsniper.local',
+      crypt('demo-password', gen_salt('bf')),
+      now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{}'::jsonb,
+      now(),
+      now()
+    );
+  end if;
+end $$;
+
 insert into public.repair_costs (category, issue, estimated_cost)
 values
   ('home', 'battery', 45),
@@ -14,6 +48,16 @@ values
   ('battery_replacement', 'Battery Replacement', 'electronics'),
   ('board_level_repair', 'Board-Level Repair', 'electronics')
 on conflict (slug) do nothing;
+
+insert into public.profiles (id, display_name, persona, min_profit_margin_usd, min_roi_percent)
+values ('00000000-0000-4000-8000-000000000001', 'Demo flipper', 'restorer', 100, 20)
+on conflict (id) do nothing;
+
+insert into public.user_skills (user_id, skill_slug)
+values
+  ('00000000-0000-4000-8000-000000000001', 'screen_swap'),
+  ('00000000-0000-4000-8000-000000000001', 'battery_replacement')
+on conflict do nothing;
 
 insert into public.catalog_products (
   id, brand, model, variant, category,
